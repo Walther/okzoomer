@@ -2,6 +2,8 @@ import { memory } from "okzoomer/okzoomer_bg";
 import { Universe, set_width, set_height, get_cell } from "okzoomer";
 import { hsl_to_rgb } from "./hsl_to_rgb";
 
+console.time("JS initialization");
+
 // Pull possible url params or set defaults
 let params = new URL(document.location).searchParams;
 let x = parseFloat(params.get("x") || -0.5);
@@ -28,12 +30,14 @@ const ctx = canvas.getContext("2d");
 console.log(ctx);
 const imageData = ctx.createImageData(canvas.width, canvas.height);
 
+console.timeEnd("JS initialization");
+
 const getIndex = (row, column) => {
   return row * width + column;
 };
 
 const renderWithRectangles = () => {
-  const start = performance.now();
+  console.time("JS renderWithRectangles");
   const cellsPtr = universe.cellsptr();
   const cells = new Uint8Array(memory.buffer, cellsPtr, width * height);
 
@@ -50,15 +54,12 @@ const renderWithRectangles = () => {
       ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
     }
   }
-  const end = performance.now();
-  const delta = end - start;
-  console.log("JS renderWithRectangles() ", delta, "ms");
-
   ctx.stroke();
+  console.timeEnd("JS renderWithRectangles");
 };
 
 const renderWithImageData = () => {
-  const start = performance.now();
+  console.time("JS renderWithImageData");
   const cellsPtr = universe.cellsptr();
   const cells = new Uint8Array(memory.buffer, cellsPtr, width * height);
 
@@ -76,9 +77,7 @@ const renderWithImageData = () => {
   }
 
   ctx.putImageData(imageData, 0, 0);
-  const end = performance.now();
-  const delta = end - start;
-  console.log("JS renderWithImageData() ", delta, "ms");
+  console.timeEnd("JS renderWithImageData");
 };
 
 // const renderLoop = () => {
@@ -90,6 +89,7 @@ const renderWithImageData = () => {
 
 // start
 universe.draw(x, y, zoom);
+// renderWithRectangles();
 renderWithImageData();
 
 // requestAnimationFrame(renderLoop);

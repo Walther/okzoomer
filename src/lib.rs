@@ -43,7 +43,7 @@ impl Universe {
     }
 
     pub fn draw(&mut self, location_x: f32, location_y: f32, zoom: f32) {
-        let _timer = Timer::new("Universe::draw");
+        let _timer = Timer::new("WASM Universe::draw");
         // viewport size
         let width = self.width;
         let height = self.height;
@@ -86,7 +86,7 @@ impl Universe {
     }
 
     pub fn new(width: u32, height: u32) -> Universe {
-        let _timer = Timer::new("Universe::new");
+        let _timer = Timer::new("WASM Universe::new");
         utils::set_panic_hook();
         let cells = (0..width * height).map(|i| 0).collect();
 
@@ -106,12 +106,12 @@ impl Universe {
     }
 
     pub fn cellsptr(&self) -> *const u8 {
-        let _timer = Timer::new("Universe::cellsptr");
+        let _timer = Timer::new("WASM Universe::cellsptr");
         self.cells.as_ptr()
     }
 
     pub fn get_cell(&self, row: u32, column: u32) -> u8 {
-        let _timer = Timer::new("Universe::get_cell");
+        let _timer = Timer::new("WASM Universe::get_cell");
         let idx = self.get_index(row, column);
         self.cells[idx]
     }
