@@ -1,5 +1,6 @@
 // HSL to RGB alternative
 // adapted from wikipedia 2019-12-21 by Walther
+// https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
 
 // Internal helper functions
 const a = (s, l) => s * Math.min(l, 1 - l);
