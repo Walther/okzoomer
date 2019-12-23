@@ -41,6 +41,12 @@ impl Universe {
     fn get_index(&self, row: u32, column: u32) -> usize {
         (row * self.width + column) as usize
     }
+    fn get_y(&self, idx: usize) -> usize {
+        idx / self.width as usize // flooring division
+    }
+    fn get_x(&self, idx: usize) -> usize {
+        idx % self.width as usize // modulo
+    }
 
     pub fn draw(&mut self, location_x: f32, location_y: f32, zoom: f32) {
         let _timer = Timer::new("WASM Universe::draw");
@@ -58,11 +64,14 @@ impl Universe {
         let scalex = (cxmax - cxmin) / width as f32;
         let scaley = (cymax - cymin) / height as f32;
 
-        // TODO: rayon
-        (0..width).for_each(|x| {
-            (0..height).for_each(|y| {
-                // pixel index in linear memory layout
-                let idx = self.get_index(y, x);
+        // TODO: rayon, when wasm support lands for par_iter
+        self.cells = self
+            .cells
+            .iter()
+            .enumerate()
+            .map(|(idx, _cell)| {
+                let x = self.get_x(idx);
+                let y = self.get_y(idx);
 
                 let cx = cxmin + x as f32 * scalex;
                 let cy = cymin + y as f32 * scaley;
@@ -80,9 +89,9 @@ impl Universe {
                     iteration = test;
                 }
 
-                self.cells[idx] = iteration
+                iteration
             })
-        });
+            .collect();
     }
 
     pub fn new(width: u32, height: u32) -> Universe {
