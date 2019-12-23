@@ -71,7 +71,9 @@ impl Universe {
 
             let mut iteration = 0;
             for test in 0..MAX_ITERATIONS {
-                if z.norm() > 2.0 {
+                // if z.norm() > 2.0 {
+                // (norm squared) > (2 squared): faster than the norm > 2 above
+                if z.norm_sqr() > 4.0 {
                     // bail out
                     break;
                 }
