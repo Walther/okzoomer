@@ -10,6 +10,7 @@ let x = parseFloat(params.get("x") || -0.5);
 let y = parseFloat(params.get("y") || 0.0);
 let zoom = parseFloat(params.get("zoom") || 1.0);
 console.log("Coordinates: X", x, " Y", y, " Zoom", zoom);
+let invertControls = false;
 
 // Set up canvas to draw on + WebGL context for it
 const canvas = document.createElement("canvas");
@@ -92,7 +93,51 @@ universe.draw(x, y, zoom);
 // renderWithRectangles();
 renderWithImageData();
 
-// requestAnimationFrame(renderLoop);
+// Controls
+document.onkeydown = e => {
+  let xdiff = 0;
+  let ydiff = 0;
+  let zdiff = 0;
+  switch (e.keyCode) {
+    case 37:
+      // left
+      xdiff = (0.1 / zoom) * x;
+      break;
+    case 38:
+      // up
+      ydiff = (0.1 / zoom) * y;
+      break;
+    case 39:
+      // right
+      xdiff = -(0.1 / zoom) * x;
+      break;
+    case 40:
+      // down
+      ydiff = -(0.1 / zoom) * y;
+      break;
+    case 87:
+      // w
+      zdiff = 0.1 * zoom;
+      break;
+    case 83:
+      // w
+      zdiff = -0.1 * zoom;
+      break;
+  }
+  if (invertControls) {
+    xdiff *= -1;
+    ydiff *= -1;
+    zdiff *= -1;
+  }
+  // Only re-render if coords change
+  x = x + xdiff;
+  y = y + ydiff;
+  zoom = zoom + zdiff;
+  if ([xdiff, ydiff, zdiff].some(n => n !== 0)) {
+    universe.draw(x, y, zoom);
+    renderWithImageData();
+  }
+};
 
 // Helpful little function to enable realtime resize of the browser window
 // (function() {
