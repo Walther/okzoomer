@@ -41,12 +41,6 @@ impl Universe {
     fn get_index(&self, row: u32, column: u32) -> usize {
         (row * self.width + column) as usize
     }
-    fn get_y(&self, idx: usize) -> usize {
-        idx / self.width as usize // flooring division
-    }
-    fn get_x(&self, idx: usize) -> usize {
-        idx % self.width as usize // modulo
-    }
 
     pub fn draw(&mut self, location_x: f32, location_y: f32, zoom: f32) {
         let _timer = Timer::new("WASM Universe::draw");
@@ -65,33 +59,28 @@ impl Universe {
         let scaley = (cymax - cymin) / height as f32;
 
         // TODO: rayon, when wasm support lands for par_iter
-        self.cells = self
-            .cells
-            .iter()
-            .enumerate()
-            .map(|(idx, _cell)| {
-                let x = self.get_x(idx);
-                let y = self.get_y(idx);
+        self.cells.iter_mut().enumerate().for_each(|(idx, cell)| {
+            let x = idx_to_x(&idx, width);
+            let y = idx_to_y(&idx, width);
 
-                let cx = cxmin + x as f32 * scalex;
-                let cy = cymin + y as f32 * scaley;
+            let cx = cxmin + x as f32 * scalex;
+            let cy = cymin + y as f32 * scaley;
 
-                let c = Complex::new(cx, cy);
-                let mut z = Complex::new(0f32, 0f32);
+            let c = Complex::new(cx, cy);
+            let mut z = Complex::new(0f32, 0f32);
 
-                let mut iteration = 0;
-                for test in 0..MAX_ITERATIONS {
-                    if z.norm() > 2.0 {
-                        // bail out
-                        break;
-                    }
-                    z = z * z + c;
-                    iteration = test;
+            let mut iteration = 0;
+            for test in 0..MAX_ITERATIONS {
+                if z.norm() > 2.0 {
+                    // bail out
+                    break;
                 }
+                z = z * z + c;
+                iteration = test;
+            }
 
-                iteration
-            })
-            .collect();
+            *cell = iteration;
+        });
     }
 
     pub fn new(width: u32, height: u32) -> Universe {
@@ -124,4 +113,12 @@ impl Universe {
         let idx = self.get_index(row, column);
         self.cells[idx]
     }
+}
+
+// ugly helpers  to avoid ownership issues
+fn idx_to_y(idx: &usize, width: u32) -> usize {
+    idx / width as usize // flooring division
+}
+fn idx_to_x(idx: &usize, width: u32) -> usize {
+    idx % width as usize // modulo
 }
