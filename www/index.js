@@ -12,6 +12,12 @@ let zoom = parseFloat(params.get("zoom") || 1.0);
 console.log("Coordinates: X", x, " Y", y, " Zoom", zoom);
 let invertControls = false;
 
+// Info display
+const info = document.createElement("p");
+info.id = "info";
+document.body.appendChild(info);
+info.innerHTML = `x: ${x}, y: ${y}, zoom: ${zoom}`;
+
 // Set up canvas to draw on + WebGL context for it
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
@@ -81,17 +87,14 @@ const renderWithImageData = () => {
   console.timeEnd("JS renderWithImageData");
 };
 
-// const renderLoop = () => {
-//   universe.draw(x, y, zoom);
-//   drawCells();
-
-//   requestAnimationFrame(renderLoop);
-// };
+const redraw = () => {
+  universe.draw(x, y, zoom);
+  renderWithImageData();
+  info.innerHTML = `x: ${x}, y: ${y}, zoom: ${zoom}`;
+};
 
 // start
-universe.draw(x, y, zoom);
-// renderWithRectangles();
-renderWithImageData();
+redraw();
 
 // Controls
 document.onkeydown = e => {
@@ -134,8 +137,7 @@ document.onkeydown = e => {
   y = y + ydiff;
   zoom = zoom + zdiff;
   if ([xdiff, ydiff, zdiff].some(n => n !== 0)) {
-    universe.draw(x, y, zoom);
-    renderWithImageData();
+    redraw();
   }
 };
 
