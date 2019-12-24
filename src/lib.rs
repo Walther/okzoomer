@@ -1,24 +1,8 @@
 mod utils;
+use utils::{hsl_to_rgb, Timer};
+
 use num_complex::Complex;
 use wasm_bindgen::prelude::*;
-use web_sys::console;
-
-pub struct Timer<'a> {
-    name: &'a str,
-}
-
-impl<'a> Timer<'a> {
-    pub fn new(name: &'a str) -> Timer<'a> {
-        console::time_with_label(name);
-        Timer { name }
-    }
-}
-
-impl<'a> Drop for Timer<'a> {
-    fn drop(&mut self) {
-        console::time_end_with_label(self.name);
-    }
-}
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -27,26 +11,22 @@ impl<'a> Drop for Timer<'a> {
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
+/// The main structure for this fractal zoomer
 pub struct Universe {
+    /// Width of the drawing area in pixels
     width: u32,
+    /// Height of the drawing area in pixels
     height: u32,
-    cells: Vec<u8>,
+    /// Array of RBGA; 4 bytes per pixel
+    memory: Vec<u8>,
 }
 
 const MAX_ITERATIONS: u8 = 255;
 
 #[wasm_bindgen]
 impl Universe {
-    // Helper method for accessing from the vec
-    fn get_index(&self, row: u32, column: u32) -> usize {
-        (row * self.width + column) as usize
-    }
-
     pub fn draw(&mut self, location_x: f32, location_y: f32, zoom: f32) {
         let _timer = Timer::new("WASM Universe::draw");
-        // viewport size
-        let width = self.width;
-        let height = self.height;
 
         // zoom-in size; which coords are we looking at
         // TODO: think about normalizing aspect ratio for viewport
@@ -55,13 +35,14 @@ impl Universe {
         let cymin = location_y - 1.5 / zoom;
         let cymax = location_y + 1.5 / zoom;
 
-        let scalex = (cxmax - cxmin) / width as f32;
-        let scaley = (cymax - cymin) / height as f32;
+        let scalex = (cxmax - cxmin) / self.width as f32;
+        let scaley = (cymax - cymin) / self.height as f32;
 
-        // TODO: rayon, when wasm support lands for par_iter
-        self.cells.iter_mut().enumerate().for_each(|(idx, cell)| {
-            let x = idx_to_x(&idx, width);
-            let y = idx_to_y(&idx, width);
+        let mut memory_index = 0;
+        while memory_index < self.memory.len() {
+            let pixel_index = memory_index / 4;
+            let x = pixel_index_to_x(&pixel_index, self.width);
+            let y = pixel_index_to_y(&pixel_index, self.width);
 
             let cx = cxmin + x as f32 * scalex;
             let cy = cymin + y as f32 * scaley;
@@ -81,19 +62,28 @@ impl Universe {
                 iteration = test;
             }
 
-            *cell = iteration;
-        });
+            // use iteration count for colorization, as the hue in hsl space
+            let hue = iteration as f32 + 30.0;
+            let rgb = hsl_to_rgb(hue, 1.0, 0.5);
+
+            self.memory[memory_index] = (255.0 * rgb.0) as u8; // r
+            self.memory[memory_index + 1] = (255.0 * rgb.1) as u8; // g
+            self.memory[memory_index + 2] = (255.0 * rgb.2) as u8; // b
+            self.memory[memory_index + 3] = 255; // a
+            memory_index += 4;
+        }
     }
 
     pub fn new(width: u32, height: u32) -> Universe {
         let _timer = Timer::new("WASM Universe::new");
         utils::set_panic_hook();
-        let cells = (0..width * height).map(|i| 0).collect();
+        // is there a prettier way to initialize a vec :|
+        let memory = (0..width * height * 4).map(|i| 0).collect();
 
         Universe {
             width,
             height,
-            cells,
+            memory,
         }
     }
 
@@ -105,22 +95,16 @@ impl Universe {
         self.height
     }
 
-    pub fn cellsptr(&self) -> *const u8 {
-        let _timer = Timer::new("WASM Universe::cellsptr");
-        self.cells.as_ptr()
-    }
-
-    pub fn get_cell(&self, row: u32, column: u32) -> u8 {
-        let _timer = Timer::new("WASM Universe::get_cell");
-        let idx = self.get_index(row, column);
-        self.cells[idx]
+    pub fn memoryptr(&self) -> *const u8 {
+        let _timer = Timer::new("WASM Universe::memoryptr");
+        self.memory.as_ptr()
     }
 }
 
 // ugly helpers  to avoid ownership issues
-fn idx_to_y(idx: &usize, width: u32) -> usize {
+fn pixel_index_to_y(idx: &usize, width: u32) -> usize {
     idx / width as usize // flooring division
 }
-fn idx_to_x(idx: &usize, width: u32) -> usize {
+fn pixel_index_to_x(idx: &usize, width: u32) -> usize {
     idx % width as usize // modulo
 }
