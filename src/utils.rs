@@ -33,20 +33,20 @@ impl<'a> Drop for Timer<'a> {
 /// https://en.wikipedia.org/wiki/HSL_and_HSV#HSL_to_RGB_alternative
 ///
 /// h: 0-360, s: 0-1, l: 0-1
-pub fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (f32, f32, f32) {
+pub fn hsl_to_rgb(h: f64, s: f64, l: f64) -> (f64, f64, f64) {
   // Internal helper functions
 
-  fn min3(a: f32, b: f32, c: f32) -> f32 {
+  fn min3(a: f64, b: f64, c: f64) -> f64 {
     a.min(b.min(c))
   }
 
-  fn a(s: f32, l: f32) -> f32 {
+  fn a(s: f64, l: f64) -> f64 {
     s * l.min(1.0 - l)
   }
-  fn k(h: f32, n: f32) -> f32 {
+  fn k(h: f64, n: f64) -> f64 {
     (n + h / 30.0) % 12.0
   }
-  fn n(h: f32, s: f32, l: f32, n: f32) -> f32 {
+  fn n(h: f64, s: f64, l: f64, n: f64) -> f64 {
     l - a(s, l) * min3(k(h, n) - 3.0, 9.0 - k(h, n), 1.0).max(-1.0)
   }
 

@@ -25,7 +25,7 @@ const MAX_ITERATIONS: u8 = 255;
 
 #[wasm_bindgen]
 impl Universe {
-    pub fn draw(&mut self, location_x: f32, location_y: f32, zoom: f32) {
+    pub fn draw(&mut self, location_x: f64, location_y: f64, zoom: f64) {
         let _timer = Timer::new("WASM Universe::draw");
 
         // zoom-in size; which coords are we looking at
@@ -35,8 +35,8 @@ impl Universe {
         let cymin = location_y - 1.5 / zoom;
         let cymax = location_y + 1.5 / zoom;
 
-        let scalex = (cxmax - cxmin) / self.width as f32;
-        let scaley = (cymax - cymin) / self.height as f32;
+        let scalex = (cxmax - cxmin) / self.width as f64;
+        let scaley = (cymax - cymin) / self.height as f64;
 
         let mut memory_index = 0;
         while memory_index < self.memory.len() {
@@ -44,11 +44,11 @@ impl Universe {
             let x = pixel_index_to_x(&pixel_index, self.width);
             let y = pixel_index_to_y(&pixel_index, self.width);
 
-            let cx = cxmin + x as f32 * scalex;
-            let cy = cymin + y as f32 * scaley;
+            let cx = cxmin + x as f64 * scalex;
+            let cy = cymin + y as f64 * scaley;
 
             let c = Complex::new(cx, cy);
-            let mut z = Complex::new(0f32, 0f32);
+            let mut z = Complex::new(0f64, 0f64);
 
             let mut iteration = 0;
             for test in 0..MAX_ITERATIONS {
@@ -63,7 +63,7 @@ impl Universe {
             }
 
             // use iteration count for colorization, as the hue in hsl space
-            let hue = iteration as f32 + 30.0;
+            let hue = iteration as f64 + 30.0;
             let rgb = hsl_to_rgb(hue, 1.0, 0.5);
 
             self.memory[memory_index] = (255.0 * rgb.0) as u8; // r
