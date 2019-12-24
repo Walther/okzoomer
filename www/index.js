@@ -6,8 +6,8 @@ console.time("JS initialization");
 
 // Pull possible url params or set defaults
 let params = new URL(document.location).searchParams;
-let x = parseFloat(params.get("x") || -0.5);
-let y = parseFloat(params.get("y") || -0.1);
+let x = parseFloat(params.get("x") || -0.74);
+let y = parseFloat(params.get("y") || -0.21);
 let zoom = parseFloat(params.get("zoom") || 1.0);
 console.log("Coordinates: X", x, " Y", y, " Zoom", zoom);
 let invertControls = false;
