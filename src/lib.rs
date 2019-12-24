@@ -79,7 +79,7 @@ impl Universe {
         let _timer = Timer::new("WASM Universe::new");
         utils::set_panic_hook();
         // is there a prettier way to initialize a vec :|
-        let memory = (0..width * height * 4).map(|i| 0).collect();
+        let memory = (0..width * height * 4).map(|_i| 0).collect();
 
         Universe {
             width,
