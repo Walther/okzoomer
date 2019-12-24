@@ -32,23 +32,20 @@ const universe = Universe.new(width, height);
 const ctx = canvas.getContext("2d");
 console.log(ctx);
 const imageData = ctx.createImageData(canvas.width, canvas.height);
+const memoryPtr = universe.memoryptr();
+const importMemory = new Uint8Array(
+  memory.buffer,
+  memoryPtr,
+  width * height * 4
+);
 
 console.timeEnd("JS initialization");
 
 const renderWithImageData = () => {
   console.time("JS renderWithImageData");
-  const memoryPtr = universe.memoryptr();
-  const importMemory = new Uint8Array(
-    memory.buffer,
-    memoryPtr,
-    width * height * 4
-  );
-
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   for (let i = 0; i < imageData.data.length; i++) {
     imageData.data[i] = importMemory[i];
   }
-
   ctx.putImageData(imageData, 0, 0);
   console.timeEnd("JS renderWithImageData");
 };
