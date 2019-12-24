@@ -1,3 +1,4 @@
+#![deny(clippy::all)]
 mod utils;
 use utils::{hsl_to_rgb, Timer};
 
@@ -41,8 +42,8 @@ impl Universe {
         let mut memory_index = 0;
         while memory_index < self.memory.len() {
             let pixel_index = memory_index / 4;
-            let x = pixel_index_to_x(&pixel_index, self.width);
-            let y = pixel_index_to_y(&pixel_index, self.width);
+            let x = pixel_index_to_x(pixel_index, self.width);
+            let y = pixel_index_to_y(pixel_index, self.width);
 
             let cx = cxmin + x as f64 * scalex;
             let cy = cymin + y as f64 * scaley;
@@ -102,9 +103,9 @@ impl Universe {
 }
 
 // ugly helpers  to avoid ownership issues
-fn pixel_index_to_y(idx: &usize, width: u32) -> usize {
+fn pixel_index_to_y(idx: usize, width: u32) -> usize {
     idx / width as usize // flooring division
 }
-fn pixel_index_to_x(idx: &usize, width: u32) -> usize {
+fn pixel_index_to_x(idx: usize, width: u32) -> usize {
     idx % width as usize // modulo
 }
